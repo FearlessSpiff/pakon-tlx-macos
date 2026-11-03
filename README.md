@@ -2,6 +2,62 @@
 
 ---
 
+## Arch Linux
+
+The stack is not macOS-specific: Wine, a mingw-built `pkusb.dll` and a
+Python/libusb bridge all exist on Linux, and on x86_64 Wine runs natively — no
+Rosetta. Only the prerequisite step differs, because `./run.sh install` uses
+Homebrew for it. Install those by hand and the scripts find `wine` and
+`i686-w64-mingw32-gcc` on your `PATH`.
+
+**Untested upstream.** The rest of this README is written for macOS.
+
+1. **Packages** (all in `extra`; Arch's Wine is WoW64, so no multilib needed):
+
+   ```sh
+   sudo pacman -S wine mingw-w64-gcc libusb python
+   ```
+
+2. **USB access without root.** Save as `/etc/udev/rules.d/60-pakon.rules`:
+
+   ```
+   # 0f05:f235 cold (before firmware load), 0f05:f135 warm (Pakon firmware running)
+   SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="0f05", ATTR{idProduct}=="f135", TAG+="uaccess"
+   SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="0f05", ATTR{idProduct}=="f235", TAG+="uaccess"
+   ```
+
+   ```sh
+   sudo udevadm control --reload && sudo udevadm trigger
+   ```
+
+   Then power-cycle or replug the scanner. Both IDs are needed: the device
+   re-enumerates after the firmware upload.
+
+3. **Python venv** with the libusb1 binding:
+
+   ```sh
+   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+   ```
+
+4. **Check, install, run:**
+
+   ```sh
+   ./run.sh doctor     # all ok except OEM files and firmware before install
+   ./run.sh install
+   ./run.sh            # scanner powered on
+   ```
+
+Notes:
+
+- `install` uses `~/.wine`. To keep it apart from other Wine apps, prefix every
+  command with `WINEPREFIX=~/.wine-pakon`.
+- Ignore the macOS wording in the scripts (Homebrew, Dock, "macOS path") and the
+  `MVK_*` / `DYLD_*` variables; they are harmless here.
+- Scans land in `~/Desktop/pakon-scans` (`PAKON_SCANS` to change).
+- [Back up your EEPROM](#back-up-your-eeprom-first) before the first scan.
+
+---
+
 Run the **real Kodak TLX Client** — Kodak's own colour science and Digital ICE —
 against a Pakon F-135 on macOS, including Apple Silicon. No Windows VM.
 
