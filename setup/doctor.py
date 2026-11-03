@@ -56,6 +56,25 @@ def sha256(path, chunk=1 << 20):
     return h.hexdigest()
 
 
+def find_ci(directory, name):
+    """Path to `name` in `directory`, matched case-insensitively.
+
+    The OEM archive spells some files differently from the manifest
+    (PakonIMAu.dll vs PakonImau.dll).  Windows, Wine and macOS do not care;
+    a Linux filesystem does.  Returns the exact-case path if nothing matches.
+    """
+    exact = os.path.join(directory, name)
+    if os.path.isfile(exact):
+        return exact
+    try:
+        for entry in os.listdir(directory):
+            if entry.lower() == name.lower():
+                return os.path.join(directory, entry)
+    except OSError:
+        pass
+    return exact
+
+
 def fetch(src, name, dest):
     """src is a directory or a base URL; returns True if it landed a file."""
     target = os.path.join(dest, name)
@@ -104,10 +123,11 @@ def main():
     width = max(len(n) for n in man)
     for name in sorted(man):
         info = man[name]
-        path = os.path.join(inst, name)
+        path = find_ci(inst, name)
         if not os.path.isfile(path) and args.source:
             print("  %-*s fetching..." % (width, name))
             fetch(args.source, name, inst)
+            path = find_ci(inst, name)
         if not os.path.isfile(path):
             print("  %-*s  MISSING      %s" % (width, name, info["purpose"]))
             missing += 1

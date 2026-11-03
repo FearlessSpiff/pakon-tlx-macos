@@ -90,7 +90,7 @@ for dir in "$SRC" "$SRC/System32"; do
     [ -d "$dir" ] || continue
     while IFS= read -r hit; do
         base="$(basename "$hit")"
-        [ -f "$APP/$base" ] && continue
+        [ -n "$(find "$APP" -maxdepth 1 -type f -iname "$base" | head -1)" ] && continue
         cp -f "$hit" "$APP/$base" && extra=$((extra + 1))
     done < <(find "$dir" -maxdepth 1 -type f \( -iname "*.dll" -o -iname "*.ocx" \) 2>/dev/null)
 done
@@ -98,7 +98,10 @@ echo "  $extra runtime file(s) collected from the installer root and System32"
 
 # Completeness assertion: everything the manifest names must now be present.
 while IFS= read -r want; do
-    [ -f "$APP/$want" ] || echo "  !! still missing after the sweep: $want"
+    # -iname: the archive's casing differs from the manifest's (PakonIMAu.dll),
+    # which only matters on a case-sensitive filesystem such as Linux.
+    [ -n "$(find "$APP" -maxdepth 1 -type f -iname "$want" | head -1)" ] \
+        || echo "  !! still missing after the sweep: $want"
 done < <(python3 -c 'import json,sys;print("\n".join(json.load(open(sys.argv[1]))))' "$HERE/manifest.json")
 
 # ---------------------------------------------------------------- firmware
