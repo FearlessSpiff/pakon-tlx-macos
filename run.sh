@@ -232,6 +232,22 @@ if ! scanner_present; then
     exit 1
 fi
 
+# 0d. Linux only: TLB VirtualLock()s its scan buffers before Light Correction and
+#     every scan, and Wine maps that to mlock().  The usual 8 MB RLIMIT_MEMLOCK
+#     is too small, and the failure surfaces only as
+#     "FN_bCalibrateBefore EC_WIN_VirtualLock (190) Access denied." in Kodak's
+#     scan log.  macOS has no such limit.
+if [ "$(uname -s)" = Linux ] && [ "$(ulimit -l)" != unlimited ]; then
+    echo "Locked-memory limit is $(ulimit -l) KB; TLB needs it unlimited, or"
+    echo "Light Correction and scanning fail with 'EC_WIN_VirtualLock Access denied'."
+    echo
+    echo "For this terminal only:"
+    echo "    sudo prlimit --pid \$\$ --memlock=unlimited:unlimited"
+    echo "Permanently (then log out and back in):"
+    echo "    echo \"$USER  -  memlock  unlimited\" | sudo tee /etc/security/limits.d/90-pakon-memlock.conf"
+    exit 1
+fi
+
 # 1. the scanner needs application firmware after every power cycle (it lives in
 #    RAM).  pakonusb.py says so plainly if it is missing.
 if ! pgrep -f pakonusb.py >/dev/null; then

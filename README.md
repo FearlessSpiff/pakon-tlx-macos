@@ -29,13 +29,27 @@ Homebrew for it. Install those by hand and the scripts find `wine` and
    Then power-cycle or replug the scanner. Both IDs are needed: the device
    re-enumerates after the firmware upload.
 
-3. **Python venv** with the libusb1 binding:
+3. **Locked-memory limit.** TLB locks its scan buffers in RAM (`VirtualLock`,
+   which Wine turns into `mlock`). The default 8 MB limit is too small, and
+   Light Correction then fails with
+   `FN_bCalibrateBefore EC_WIN_VirtualLock (190) Access denied` in
+   `Logs/PakonErrorLogScan.txt`. `run.sh` refuses to start until it is raised:
+
+   ```sh
+   echo "$USER  -  memlock  unlimited" | sudo tee /etc/security/limits.d/90-pakon-memlock.conf
+   ```
+
+   Log out and back in; `ulimit -l` should print `unlimited`. To try it without
+   logging out, raise it for the current terminal and start `./run.sh` from
+   there: `sudo prlimit --pid $$ --memlock=unlimited:unlimited`.
+
+4. **Python venv** with the libusb1 binding:
 
    ```sh
    python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
    ```
 
-4. **Check, install, run:**
+5. **Check, install, run:**
 
    ```sh
    ./run.sh doctor     # all ok except OEM files and firmware before install
@@ -50,6 +64,10 @@ Notes:
 - Ignore the macOS wording in the scripts (Homebrew, Dock, "macOS path") and the
   `MVK_*` / `DYLD_*` variables; they are harmless here.
 - Scans land in `~/Desktop/pakon-scans` (`PAKON_SCANS` to change).
+- **HiDPI:** Wine draws at 96 DPI. Set it to your scale x 96 (1.75 -> 168,
+  2 -> 192) with
+  `wine reg add 'HKCU\Control Panel\Desktop' /v LogPixels /t REG_DWORD /d 168 /f`
+  or in `winecfg` -> Graphics, then restart the client.
 - [Back up your EEPROM](#back-up-your-eeprom-first) before the first scan.
 
 ---
