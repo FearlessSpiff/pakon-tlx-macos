@@ -70,7 +70,11 @@ Notes:
   command with `WINEPREFIX=~/.wine-pakon`.
 - Ignore the macOS wording in the scripts (Homebrew, Dock, "macOS path") and the
   `MVK_*` / `DYLD_*` variables; they are harmless here.
-- Scans land in `~/Desktop/pakon-scans` (`PAKON_SCANS` to change).
+- Scans land in `~/Pictures/pakon-scans` (your XDG Pictures folder;
+  `PAKON_SCANS` to change, and `run.sh` re-points `P:` when you do).
+- **niri:** it floats the client (fixed-size window), which keeps it above
+  everything. Tile it with a window rule:
+  `window-rule { match app-id=r#"^tlxclientdemo\.exe$"# title="^TLXClientDemo$"; open-floating false; }`
 - **HiDPI:** Wine draws at 96 DPI. Set it to your scale x 96 (1.75 -> 168,
   2 -> 192) with
   `wine reg add 'HKCU\Control Panel\Desktop' /v LogPixels /t REG_DWORD /d 168 /f`

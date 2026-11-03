@@ -159,16 +159,29 @@ echo "wine: $WINE"
 
 # Scans must land somewhere you can see. Map a drive letter straight at a real
 # folder, so the Save dialog writes through it -- no copying, no watcher.
-SCANS="${PAKON_SCANS:-$HOME/Desktop/pakon-scans}"
+if [ "$(uname -s)" = Linux ]; then
+    PICS="$(xdg-user-dir PICTURES 2>/dev/null)"
+    [ -n "$PICS" ] && [ "$PICS" != "$HOME" ] || PICS="$HOME/Pictures"
+    SCANS="${PAKON_SCANS:-$PICS/pakon-scans}"
+else
+    SCANS="${PAKON_SCANS:-$HOME/Desktop/pakon-scans}"
+fi
 mkdir -p "$SCANS"
-if [ ! -e "$WINEPREFIX/dosdevices/p:" ]; then
-    ln -s "$SCANS" "$WINEPREFIX/dosdevices/p:" && echo "mapped P: -> $SCANS"
+# Re-point an existing link too, so changing PAKON_SCANS takes effect.  A real
+# directory or drive mapping someone made by hand is left alone.
+PDRV="$WINEPREFIX/dosdevices/p:"
+if [ ! -e "$PDRV" ] && [ ! -L "$PDRV" ]; then
+    ln -s "$SCANS" "$PDRV" && echo "mapped P: -> $SCANS"
+elif [ -L "$PDRV" ] && [ "$(readlink "$PDRV")" != "$SCANS" ]; then
+    ln -sfn "$SCANS" "$PDRV" && echo "re-mapped P: -> $SCANS"
 fi
 # The Save Settings box ships pre-filled with C:\Temp\Test0.bmp, so redirect
 # that too -- otherwise a default save is buried in the prefix. rmdir only
 # succeeds on an empty dir, so this never touches scans already sitting there.
 WTEMP="$WINEPREFIX/drive_c/Temp"
-if [ -L "$WTEMP" ]; then :
+if [ -L "$WTEMP" ]; then
+    [ "$(readlink "$WTEMP")" = "$SCANS" ] \
+        || { ln -sfn "$SCANS" "$WTEMP" && echo 're-mapped C:\Temp -> '"$SCANS"; }
 elif [ ! -e "$WTEMP" ] || rmdir "$WTEMP" 2>/dev/null; then
     ln -s "$SCANS" "$WTEMP" && echo 'mapped C:\Temp -> '"$SCANS"
 else
