@@ -80,6 +80,18 @@ Notes:
   `wine reg add 'HKCU\Control Panel\Desktop' /v LogPixels /t REG_DWORD /d 168 /f`
   or in `winecfg` -> Graphics, then restart the client.
 - [Back up your EEPROM](#back-up-your-eeprom-first) before the first scan.
+- **Light Correction is per mode.** It calibrates only the resolution and film
+  mode currently selected; the IR (Digital ICE) modes are separate. Run it once
+  for each one you use, e.g. Base 16, then Base 16 with *Scratch Removal* ticked.
+- **Feeding (F-135 Plus, film standing on edge):** "emulsion up" means the
+  **dull emulsion side facing you**, lowest frame number entering first. To swap
+  which end leads, turn the strip 180° in its own plane, not end-for-end, which
+  would flip the emulsion away; the scans then come out upside down. A wrong
+  feed is refused, not scanned, with `EC_HardwareFault` in
+  `Logs/PakonErrorLogMain.txt`: bit `0x20000000` set means tail first,
+  `0x10000000` emulsion down (seen here as `0xE0000000` for tail first alone).
+- **Nothing to save after a scan?** The frames have to be moved into a *save
+  group* in the client before anything is written.
 
 ---
 
