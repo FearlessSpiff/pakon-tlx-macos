@@ -95,8 +95,8 @@ HKLM\Software\Wow6432Node\Pakon\TLB\Scan\DpiBase16_35\ColNegIr
 
 `FullLightCorrections` is write-to-request, not a stored boolean: TLB replaces
 the `1` with a Unix timestamp once the correction has run. `setup.sh` therefore
-only seeds modes with no value at all — resetting it to `1` forces the unit to
-redo the correction.
+only seeds modes with no value or `0` (what TLB writes on its first run) —
+resetting a timestamp to `1` forces the unit to redo the correction.
 
 Without it, the light values stay at their compiled-in defaults
 (`Current=1`, `DutyCycle=0.000000`) — which the config getter then persists — and

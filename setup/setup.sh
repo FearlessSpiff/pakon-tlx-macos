@@ -287,8 +287,12 @@ REGFIX
                     /reg:32 >/dev/null 2>&1; then
                 absent=$((absent + 1)); continue        # key absent: leave it to TLB
             fi
-            MVK_CONFIG_LOG_LEVEL=0 WINEDEBUG=-all "$WINE" reg query "$k" \
-                /v FullLightCorrections /reg:32 >/dev/null 2>&1 && continue
+            # TLB writes 0 on its first run: "not requested", not done.  Only a
+            # non-zero value (1 = pending, or a completion timestamp) is kept.
+            cur="$(MVK_CONFIG_LOG_LEVEL=0 WINEDEBUG=-all "$WINE" reg query "$k" \
+                /v FullLightCorrections /reg:32 2>/dev/null \
+                | tr -d '\r' | awk '/FullLightCorrections/ {print $3}')"
+            [ -n "$cur" ] && [ "$cur" != "0x0" ] && continue
             MVK_CONFIG_LOG_LEVEL=0 WINEDEBUG=-all "$WINE" reg add "$k" \
                 /v FullLightCorrections /t REG_DWORD /d 1 /f /reg:32 >/dev/null 2>&1 \
                 && seeded=$((seeded + 1))
