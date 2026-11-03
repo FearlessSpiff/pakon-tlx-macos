@@ -241,10 +241,12 @@ if [ "$(uname -s)" = Linux ] && [ "$(ulimit -l)" != unlimited ]; then
     echo "Locked-memory limit is $(ulimit -l) KB; TLB needs it unlimited, or"
     echo "Light Correction and scanning fail with 'EC_WIN_VirtualLock Access denied'."
     echo
-    echo "For this terminal only:"
+    echo "For this terminal only, then run ./run.sh from it again:"
     echo "    sudo prlimit --pid \$\$ --memlock=unlimited:unlimited"
-    echo "Permanently (then log out and back in):"
-    echo "    echo \"$USER  -  memlock  unlimited\" | sudo tee /etc/security/limits.d/90-pakon-memlock.conf"
+    echo "Permanently, for a systemd user session (then log out and back in):"
+    echo "    sudo mkdir -p /etc/systemd/system/user@.service.d"
+    echo "    printf '[Service]\\nLimitMEMLOCK=infinity\\n' | sudo tee /etc/systemd/system/user@.service.d/memlock.conf"
+    echo "    sudo systemctl daemon-reload"
     exit 1
 fi
 

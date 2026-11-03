@@ -36,12 +36,19 @@ Homebrew for it. Install those by hand and the scripts find `wine` and
    `Logs/PakonErrorLogScan.txt`. `run.sh` refuses to start until it is raised:
 
    ```sh
-   echo "$USER  -  memlock  unlimited" | sudo tee /etc/security/limits.d/90-pakon-memlock.conf
+   sudo mkdir -p /etc/systemd/system/user@.service.d
+   printf '[Service]\nLimitMEMLOCK=infinity\n' | sudo tee /etc/systemd/system/user@.service.d/memlock.conf
+   sudo systemctl daemon-reload
    ```
 
-   Log out and back in; `ulimit -l` should print `unlimited`. To try it without
-   logging out, raise it for the current terminal and start `./run.sh` from
-   there: `sudo prlimit --pid $$ --memlock=unlimited:unlimited`.
+   Then log out and back in. This is the systemd user manager's limit, which
+   everything in a systemd-started session (niri, GNOME, KDE ...) inherits;
+   `/etc/security/limits.conf` does not reach it. To try it without logging
+   out, raise it for the current terminal and start `./run.sh` from there:
+   `sudo prlimit --pid $$ --memlock=unlimited:unlimited`.
+
+   Check with `grep locked /proc/$$/limits`. zsh's `ulimit -l` keeps
+   showing the value from when the shell started.
 
 4. **Python venv** with the libusb1 binding:
 
