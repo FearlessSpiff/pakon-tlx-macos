@@ -86,7 +86,10 @@ Notes:
 - **Feeding (F-135 Plus, film standing on edge):** "emulsion up" means the
   **dull emulsion side facing you**, lowest frame number entering first. To swap
   which end leads, turn the strip 180° in its own plane, not end-for-end, which
-  would flip the emulsion away; the scans then come out upside down. A wrong
+  would flip the emulsion away. With both rules met there is only one valid
+  feed, so if frames come out upside down that is the camera (film direction,
+  or a point-and-shoot that pre-winds the roll), not the feed: rotate
+  afterwards (`jpegtran -rotate 180` is lossless for JPEG). A wrong
   feed is refused, not scanned, with `EC_HardwareFault` in
   `Logs/PakonErrorLogMain.txt`: bit `0x20000000` set means tail first,
   `0x10000000` emulsion down (seen here as `0xE0000000` for tail first alone).
