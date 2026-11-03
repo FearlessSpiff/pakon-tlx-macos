@@ -18,15 +18,11 @@ Homebrew for it. Install those by hand and the scripts find `wine` and
    sudo pacman -S wine mingw-w64-gcc libusb python
    ```
 
-2. **USB access without root.** Save as `/etc/udev/rules.d/60-pakon.rules`:
-
-   ```
-   # 0f05:f235 cold (before firmware load), 0f05:f135 warm (Pakon firmware running)
-   SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="0f05", ATTR{idProduct}=="f135", TAG+="uaccess"
-   SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="0f05", ATTR{idProduct}=="f235", TAG+="uaccess"
-   ```
+2. **USB access without root.** Install the udev rule from
+   [`packaging/linux/60-pakon.rules`](packaging/linux/60-pakon.rules):
 
    ```sh
+   sudo cp packaging/linux/60-pakon.rules /etc/udev/rules.d/
    sudo udevadm control --reload && sudo udevadm trigger
    ```
 

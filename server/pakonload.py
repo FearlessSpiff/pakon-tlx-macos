@@ -24,7 +24,7 @@ real USB capture):
   7. download app firmware         (0xA3 external pass, then 0xA0 internal pass)
   8. reset 8051 (1 then 0) to start the application firmware
 
-Run as root, or install udev/70-pakon.rules for non-root access.
+Run as root, or install packaging/linux/60-pakon.rules for non-root access.
 """
 import glob
 import os
@@ -175,7 +175,7 @@ def load_firmware(firmware_dir=FWDIR, stage2=STAGE2, wait=8.0, log=print):
         handle = ctx.openByVendorIDAndProductID(VID, PID_UNLOADED, skip_on_error=True)
         if handle is None:
             log(f"ERROR: no unloaded Pakon device ({VID:04x}:{PID_UNLOADED:04x}). "
-                f"Plugged in & powered? Permission? (see udev/70-pakon.rules)")
+                f"Plugged in & powered? Permission? (see packaging/linux/60-pakon.rules)")
             return False
 
         dev = handle.getDevice()
